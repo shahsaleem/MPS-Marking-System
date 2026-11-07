@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Marking System - Majid Public High School Kotla Ali Dasti</title>
+ <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <div class="container">
+    <!-- Non-printing Dashboard Controls -->
+    <header class="dashboard-header no-print">
+      <!-- School Logo Linked with School Name -->
+      <a href="#" class="school-brand-link" title="Majid Public High School Kotla Ali Dasti">
+        <img class="dashboard-logo" src="./mpsl_ogo.jpeg" alt="School Logo" />
+        <div class="school-brand-text">
+          <h1>Majid Public High School Kotla Ali Dasti</h1>
+          <p>Academic Marking System & Transcript Generator (3-Term Evaluation)</p>
+        </div>
+      </a>
+      <div class="btn-group">
+        <button type="button" class="btn btn-secondary" onclick="populateSampleData()">Load Sample Data</button>
+        <button type="button" class="btn btn-primary" onclick="calculateAndSync(); window.print();">🖨️ Print A4 Result Card</button>
+      </div>
+    </header>
+
+    <!-- Student & Media Config Section -->
+    <section class="card no-print">
+      <h2 class="card-title">1. Student Profile Details</h2>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Student Full Name</label>
+          <input type="text" id="in-name" class="form-control" value="Muhammad Saad" oninput="calculateAndSync()" />
+        </div>
+        <div class="form-group">
+          <label>Father's Name</label>
+          <input type="text" id="in-fname" class="form-control" value="Muhammad Lateef" oninput="calculateAndSync()" />
+        </div>
+        <div class="form-group">
+          <label>Roll Number</label>
+          <input type="text" id="in-roll" class="form-control" value="10" oninput="calculateAndSync()" />
+        </div>
+        <div class="form-group">
+          <label>Class & Section</label>
+          <input type="text" id="in-class" class="form-control" value="10th" oninput="calculateAndSync()" />
+        </div>
+        <div class="form-group">
+          <label>Academic Session</label>
+          <input type="text" id="in-session" class="form-control" value="2026-2027" oninput="calculateAndSync()" />
+        </div>
+        <div class="form-group">
+          <label>Exam Date / Issue Date</label>
+          <input type="text" id="in-date" class="form-control" value="November 07, 2026" oninput="calculateAndSync()" />
+        </div>
+      </div>
+
+      <!-- Student Image Only Upload Section -->
+      <div class="upload-container">
+        <div class="upload-box">
+          <img id="photo-preview" class="preview-circle" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 24 24' fill='%2394a3b8'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Student Photo" />
+          <div class="form-group" style="flex-grow: 1;">
+            <label style="font-weight: 700; color: var(--primary);">Upload Student Profile Photo</label>
+            <input type="file" id="photo-input" accept="image/*" class="form-control" onchange="handleStudentPhotoUpload(event)" />
+            <small style="color: var(--text-muted); font-size: 0.78rem;">PNG, JPG, or JPEG (Renders on A4 transcript)</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Subject Marks Entry Grid (3 Terms) -->
+    <section class="card no-print">
+      <h2 class="card-title">2. Subject Marks Entry (Term 1, Term 2, Term 3)</h2>
+      <div class="table-responsive">
+        <table class="data-table" id="input-marks-table">
+          <thead>
+            <tr>
+              <th rowspan="2" class="left">#</th>
+              <th rowspan="2" class="left">Subject Name</th>
+              <th colspan="2">1st Term</th>
+              <th colspan="2">2nd Term</th>
+              <th colspan="2">3rd Term</th>
+              <th colspan="2">Total Marks</th>
+              <th rowspan="2">Percentage</th>
+              <th rowspan="2">Grade</th>
+              <th rowspan="2">Status</th>
+            </tr>
+            <tr>
+              <th>Obt</th>
+              <th>Max</th>
+              <th>Obt</th>
+              <th>Max</th>
+              <th>Obt</th>
+              <th>Max</th>
+              <th>Obt</th>
+              <th>Max</th>
+            </tr>
+          </thead>
+          <tbody id="subject-rows">
+            <!-- Dynamically rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Live Performance Cards -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <span>Overall Total</span>
+          <strong id="live-total-marks">0 / 0</strong>
+        </div>
+        <div class="metric-card">
+          <span>Aggregate Percentage</span>
+          <strong id="live-percentage">0.00%</strong>
+        </div>
+        <div class="metric-card">
+          <span>Overall Grade</span>
+          <strong id="live-grade">-</strong>
+        </div>
+        <div class="metric-card">
+          <span>Final Result</span>
+          <strong id="live-status">-</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         A4 OFFICIAL RESULT CARD / TRANSCRIPT (DISPLAYED & PRINTED)
+         ========================================================================= -->
+    <div id="printable-sheet">
+      <!-- School Header with Linked Logo -->
+      <header class="transcript-header">
+        <div class="transcript-header-top">
+          <a href="#" class="transcript-logo-link" title="Majid Public High School Kotla Ali Dasti">
+            <img class="transcript-logo" src="./mpsl_ogo.jpeg " alt="School Logo" />
+            <div class="transcript-school-info">
+              <h2>Majid Public High School Kotla Ali Dasti</h2>
+              <p>Recognized & Registered Secondary Institution | District Lodhran, Punjab</p>
+            </div>
+          </a>
+          <img id="transcript-photo-img" class="transcript-student-photo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 24 24' fill='%2394a3b8'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Student Photo" />
+        </div>
+        <div class="transcript-badge-wrapper">
+          <span class="transcript-badge">MONTHLY TERMS TEST MARKSHEET (THREE TERMS)</span>
+        </div>
+      </header>
+
+      <!-- Student Credentials -->
+      <div class="student-info-grid">
+        <div><strong>Name:</strong> <span id="out-name">Muhammad Hamza</span></div>
+        <div><strong>F-Name:</strong> <span id="out-fname">Tariq Mehmood</span></div>
+        <div><strong>Roll Number:</strong> <span id="out-roll">MPH-1048</span></div>
+        <div><strong>Class / Sec:</strong> <span id="out-class">10th (Science-A)</span></div>
+        <div><strong>Session:</strong> <span id="out-session">2026-2027</span></div>
+        <div><strong>Issue Date:</strong> <span id="out-date">November 07, 2026</span></div>
+        <div><strong>Exam System:</strong> <span>Monthly Three Terms </span></div>
+        <div><strong>Status:</strong> <span id="out-head-status" style="font-weight:700;">PASSED</span></div>
+      </div>
+
+      <!-- Official Tabular Transcript -->
+      <table class="transcript-table">
+        <thead>
+          <tr>
+            <th rowspan="2" style="width: 4%;">Sr.</th>
+            <th rowspan="2" style="width: 26%; text-align: left;">Subject</th>
+            <th colspan="2">Term 1</th>
+            <th colspan="2">Term 2</th>
+            <th colspan="2">Term 3</th>
+            <th colspan="2">Grand Total</th>
+            <th rowspan="2" style="width: 8%;">%</th>
+            <th rowspan="2" style="width: 7%;">Grade</th>
+            <th rowspan="2" style="width: 7%;">Status</th>
+          </tr>
+          <tr>
+            <th style="width: 6%;">Obt</th>
+            <th style="width: 6%;">Max</th>
+            <th style="width: 6%;">Obt</th>
+            <th style="width: 6%;">Max</th>
+            <th style="width: 6%;">Obt</th>
+            <th style="width: 6%;">Max</th>
+            <th style="width: 7%;">Obt</th>
+            <th style="width: 7%;">Max</th>
+          </tr>
+        </thead>
+        <tbody id="transcript-body">
+          <!-- Populated by JavaScript -->
+        </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="2" style="text-align: right; padding-right: 10px;">Cumulative Summary:</td>
+            <td id="t1-tot-obt">0</td>
+            <td id="t1-tot-max">0</td>
+            <td id="t2-tot-obt">0</td>
+            <td id="t2-tot-max">0</td>
+            <td id="t3-tot-obt">0</td>
+            <td id="t3-tot-max">0</td>
+            <td id="all-tot-obt">0</td>
+            <td id="all-tot-max">0</td>
+            <td id="overall-percentage">0%</td>
+            <td id="overall-grade">-</td>
+            <td id="overall-status">-</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <!-- Grade Scale Key & Remarks -->
+      <div class="grading-scale-container">
+        <table class="scale-table">
+          <thead>
+            <tr>
+              <th>Percentage</th>
+              <th>Grade</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>80% & Above</td><td>A+</td><td>Exceptional</td></tr>
+            <tr><td>70% - 79.9%</td><td>A</td><td>Excellent</td></tr>
+            <tr><td>60% - 69.9%</td><td>B</td><td>Very Good</td></tr>
+            <tr><td>50% - 59.9%</td><td>C</td><td>Good</td></tr>
+            <tr><td>40% - 49.9%</td><td>D</td><td>Fair</td></tr>
+            <tr><td>33% - 39.9%</td><td>E</td><td>Satisfactory</td></tr>
+            <tr><td>Below 33%</td><td>F</td><td>Fail</td></tr>
+          </tbody>
+        </table>
+
+        <div class="remarks-box">
+          <p style="font-weight: 700; margin-bottom: 4px; color: var(--primary);">Controller Remarks:</p>
+          <p id="transcript-remarks" style="font-size: 0.78rem; line-height: 1.4; color: #475569;">
+            Student has completed the full three-term curriculum in all required subjects. Overall academic progress is exemplary.
+          </p>
+        </div>
+      </div>
+
+      <!-- Formal Authorization Signatures -->
+      <footer class="signatures-row">
+        <div class="sign-block">Class Teacher/Incharge</div>
+        <div class="sign-block">Exam Controller</div>
+        <div class="sign-block">Principal / Headmaster<br>(Majid Public High School)</div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // Standard 8 Academic Subjects
+    const subjects = [
+      "Mathematics",
+      "Physics",
+      "Tarjma Quran",
+      "Islamiyat / PakStudies",
+      "Urdu",
+      "English ",
+      "Chemistry ",
+      "Biology / Computer"
+    ];
+
+    // Initial default marks dataset
+    let marksData = [
+      { t1Obt: 15, t1Max: 25, t2Obt: 15, t2Max: 25, t3Obt: 15, t3Max: 25 },
+      { t1Obt: 15, t1Max: 25, t2Obt: 15, t2Max: 25, t3Obt: 15, t3Max: 25 },
+      { t1Obt: 15, t1Max: 25, t2Obt: 15, t2Max: 25, t3Obt: 15, t3Max: 25 },
+      { t1Obt: 15, t1Max: 25, t2Obt: 15, t2Max: 25, t3Obt: 15, t3Max: 25 },
+      { t1Obt: 15, t1Max: 25, t2Obt: 15, t2Max: 25, t3Obt: 15, t3Max: 25 },
+      { t1Obt: 15, t1Max: 25, t2Obt: 15, t2Max: 25, t3Obt: 15, t3Max: 25 },
+      { t1Obt: 15, t1Max: 25, t2Obt: 15, t2Max: 25, t3Obt: 15, t3Max: 25 },
+      { t1Obt: 15, t1Max: 25, t2Obt: 15, t2Max: 25, t3Obt: 15, t3Max: 25 }
+    ];
+
+    // Grading Helper
+    function calculateGrade(percentage) {
+      if (percentage >= 80) return { grade: "A+", status: "Pass", label: "Exceptional" };
+      if (percentage >= 70) return { grade: "A", status: "Pass", label: "Excellent" };
+      if (percentage >= 60) return { grade: "B", status: "Pass", label: "Very Good" };
+      if (percentage >= 50) return { grade: "C", status: "Pass", label: "Good" };
+      if (percentage >= 40) return { grade: "D", status: "Pass", label: "Fair" };
+      if (percentage >= 33) return { grade: "E", status: "Pass", label: "Satisfactory" };
+      return { grade: "F", status: "Fail", label: "Needs Improvement" };
+    }
+
+    // Render Editable Interactive Rows
+    function renderInputTable() {
+      const tbody = document.getElementById("subject-rows");
+      tbody.innerHTML = "";
+
+      subjects.forEach((sub, i) => {
+        const item = marksData[i];
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td class="left"><strong>${sub}</strong></td>
+          <td><input type="number" class="input-mark" min="0" max="100" value="${item.t1Obt}" oninput="updateMark(${i}, 't1Obt', this.value)"></td>
+          <td><input type="number" class="input-mark" min="1" max="100" value="${item.t1Max}" oninput="updateMark(${i}, 't1Max', this.value)"></td>
+          <td><input type="number" class="input-mark" min="0" max="100" value="${item.t2Obt}" oninput="updateMark(${i}, 't2Obt', this.value)"></td>
+          <td><input type="number" class="input-mark" min="1" max="100" value="${item.t2Max}" oninput="updateMark(${i}, 't2Max', this.value)"></td>
+          <td><input type="number" class="input-mark" min="0" max="100" value="${item.t3Obt}" oninput="updateMark(${i}, 't3Obt', this.value)"></td>
+          <td><input type="number" class="input-mark" min="1" max="100" value="${item.t3Max}" oninput="updateMark(${i}, 't3Max', this.value)"></td>
+          <td id="dash-tot-obt-${i}">0</td>
+          <td id="dash-tot-max-${i}">0</td>
+          <td id="dash-pct-${i}">0%</td>
+          <td id="dash-grade-${i}">-</td>
+          <td id="dash-status-${i}">-</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // State Mutator
+    function updateMark(index, field, value) {
+      const num = parseFloat(value) || 0;
+      marksData[index][field] = num;
+      calculateAndSync();
+    }
+
+    // Main Calculator & Transcript Synchronizer
+    function calculateAndSync() {
+      // Sync Student Info Inputs to Transcript View
+      document.getElementById("out-name").innerText = document.getElementById("in-name").value || "—";
+      document.getElementById("out-fname").innerText = document.getElementById("in-fname").value || "—";
+      document.getElementById("out-roll").innerText = document.getElementById("in-roll").value || "—";
+      document.getElementById("out-class").innerText = document.getElementById("in-class").value || "—";
+      document.getElementById("out-session").innerText = document.getElementById("in-session").value || "—";
+      document.getElementById("out-date").innerText = document.getElementById("in-date").value || "—";
+
+      let grandT1Obt = 0, grandT1Max = 0;
+      let grandT2Obt = 0, grandT2Max = 0;
+      let grandT3Obt = 0, grandT3Max = 0;
+      let anySubjectFailed = false;
+
+      const transcriptTbody = document.getElementById("transcript-body");
+      transcriptTbody.innerHTML = "";
+
+      subjects.forEach((sub, i) => {
+        const item = marksData[i];
+
+        const subTotObt = item.t1Obt + item.t2Obt + item.t3Obt;
+        const subTotMax = item.t1Max + item.t2Max + item.t3Max;
+        const subPct = subTotMax > 0 ? (subTotObt / subTotMax) * 100 : 0;
+        const evaluation = calculateGrade(subPct);
+
+        if (evaluation.status === "Fail") anySubjectFailed = true;
+
+        grandT1Obt += item.t1Obt;
+        grandT1Max += item.t1Max;
+        grandT2Obt += item.t2Obt;
+        grandT2Max += item.t2Max;
+        grandT3Obt += item.t3Obt;
+        grandT3Max += item.t3Max;
+
+        // Update Dashboard Live Table Row
+        const dashTotObt = document.getElementById(`dash-tot-obt-${i}`);
+        const dashTotMax = document.getElementById(`dash-tot-max-${i}`);
+        const dashPct = document.getElementById(`dash-pct-${i}`);
+        const dashGrade = document.getElementById(`dash-grade-${i}`);
+        const dashStatus = document.getElementById(`dash-status-${i}`);
+
+        if (dashTotObt) dashTotObt.innerText = subTotObt;
+        if (dashTotMax) dashTotMax.innerText = subTotMax;
+        if (dashPct) dashPct.innerText = `${subPct.toFixed(1)}%`;
+        if (dashGrade) dashGrade.innerText = evaluation.grade;
+        if (dashStatus) {
+          dashStatus.innerHTML = `<span class="badge ${evaluation.status === 'Pass' ? 'badge-pass' : 'badge-fail'}">${evaluation.status}</span>`;
+        }
+
+        // Build Printable Sheet Row
+        const printTr = document.createElement("tr");
+        printTr.innerHTML = `
+          <td>${i + 1}</td>
+          <td class="sub-name">${sub}</td>
+          <td>${item.t1Obt}</td>
+          <td>${item.t1Max}</td>
+          <td>${item.t2Obt}</td>
+          <td>${item.t2Max}</td>
+          <td>${item.t3Obt}</td>
+          <td>${item.t3Max}</td>
+          <td><strong>${subTotObt}</strong></td>
+          <td>${subTotMax}</td>
+          <td>${subPct.toFixed(1)}%</td>
+          <td><strong>${evaluation.grade}</strong></td>
+          <td><span class="badge ${evaluation.status === 'Pass' ? 'badge-pass' : 'badge-fail'}">${evaluation.status}</span></td>
+        `;
+        transcriptTbody.appendChild(printTr);
+      });
+
+      // Cumulative Calculations
+      const totalObtained = grandT1Obt + grandT2Obt + grandT3Obt;
+      const totalMaximum = grandT1Max + grandT2Max + grandT3Max;
+      const overallPct = totalMaximum > 0 ? (totalObtained / totalMaximum) * 100 : 0;
+      const overallEvaluation = calculateGrade(overallPct);
+      const finalStatus = (anySubjectFailed || overallEvaluation.status === "Fail") ? "FAIL" : "PASSED";
+
+      // Sync Transcript Footer
+      document.getElementById("t1-tot-obt").innerText = grandT1Obt;
+      document.getElementById("t1-tot-max").innerText = grandT1Max;
+      document.getElementById("t2-tot-obt").innerText = grandT2Obt;
+      document.getElementById("t2-tot-max").innerText = grandT2Max;
+      document.getElementById("t3-tot-obt").innerText = grandT3Obt;
+      document.getElementById("t3-tot-max").innerText = grandT3Max;
+      document.getElementById("all-tot-obt").innerText = totalObtained;
+      document.getElementById("all-tot-max").innerText = totalMaximum;
+      document.getElementById("overall-percentage").innerText = `${overallPct.toFixed(1)}%`;
+      document.getElementById("overall-grade").innerText = overallEvaluation.grade;
+      document.getElementById("overall-status").innerHTML = `<span class="badge ${finalStatus === 'PASSED' ? 'badge-pass' : 'badge-fail'}">${finalStatus}</span>`;
+
+      // Sync Screen Dashboard Metrics
+      document.getElementById("live-total-marks").innerText = `${totalObtained} / ${totalMaximum}`;
+      document.getElementById("live-percentage").innerText = `${overallPct.toFixed(2)}%`;
+      document.getElementById("live-grade").innerText = overallEvaluation.grade;
+      document.getElementById("live-status").innerHTML = `<span class="badge ${finalStatus === 'PASSED' ? 'badge-pass' : 'badge-fail'}">${finalStatus}</span>`;
+
+      // Header status indicator
+      const headStatus = document.getElementById("out-head-status");
+      headStatus.innerText = finalStatus;
+      headStatus.style.color = finalStatus === "PASSED" ? "var(--success)" : "var(--danger)";
+
+      // Remarks dynamic note
+      const remarks = document.getElementById("transcript-remarks");
+      if (finalStatus === "PASSED") {
+        remarks.innerText = `The candidate demonstrated commendable performance across all three academic terms. Awarded Grade ${overallEvaluation.grade} (${overallEvaluation.label}).`;
+      } else {
+        remarks.innerText = `The candidate did not meet the minimal qualifying threshold in one or more subjects. Supplemental term examination is required.`;
+      }
+    }
+
+    // Student Photo Upload Handler Only
+    function handleStudentPhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const result = e.target.result;
+        document.getElementById("photo-preview").src = result;
+        document.getElementById("transcript-photo-img").src = result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Populate Sample Data Helper
+    function populateSampleData() {
+      marksData = [
+        { t1Obt: 21, t1Max: 25, t2Obt: 21, t2Max: 25, t3Obt: 21, t3Max: 25 },
+        { t1Obt: 21, t1Max: 25, t2Obt: 21, t2Max: 25, t3Obt: 21, t3Max: 25 },
+        { t1Obt: 21, t1Max: 25, t2Obt: 21, t2Max: 25, t3Obt: 21, t3Max: 25 },
+        { t1Obt: 21, t1Max: 25, t2Obt: 21, t2Max: 25, t3Obt: 21, t3Max: 25 },
+        { t1Obt: 21, t1Max: 25, t2Obt: 21, t2Max: 25, t3Obt: 21, t3Max: 25 },
+        { t1Obt: 21, t1Max: 25, t2Obt: 21, t2Max: 25, t3Obt: 21, t3Max: 25 },
+        { t1Obt: 21, t1Max: 25, t2Obt: 21, t2Max: 25, t3Obt: 21, t3Max: 25 },
+        { t1Obt: 21, t1Max: 25, t2Obt: 21, t2Max: 25, t3Obt: 21, t3Max: 25 }
+      ];
+      renderInputTable();
+      calculateAndSync();
+    }
+
+    // Initialize on load
+    window.onload = function() {
+      renderInputTable();
+      calculateAndSync();
+    };
+  </script>
+</body>
+</html>
